@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Billing/Billing.csproj" />
+    <Project Path="src/Messaging.RabbitMq/Messaging.RabbitMq.csproj" />
+    <Project Path="src/Messaging/Messaging.csproj" />
+    <Project Path="src/Outbox/Outbox.csproj" />
+    <Project Path="src/Subscriptions.Contracts/Subscriptions.Contracts.csproj" />
+    <Project Path="src/Subscriptions/Subscriptions.csproj" />
+    <Project Path="src/TransactionalOutbox.Api/TransactionalOutbox.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TransactionalOutbox.ArchitectureTests/TransactionalOutbox.ArchitectureTests.csproj" />
+    <Project Path="tests/TransactionalOutbox.IntegrationTests/TransactionalOutbox.IntegrationTests.csproj" />
+    <Project Path="tests/TransactionalOutbox.UnitTests/TransactionalOutbox.UnitTests.csproj" />
+  </Folder>
+</Solution>

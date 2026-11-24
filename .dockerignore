@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/data/
+**/*.db
+**/*.db-*
+.git/
+.github/
+.claude/
+specs/
+tests/
