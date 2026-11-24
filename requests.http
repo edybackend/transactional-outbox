@@ -1,0 +1,50 @@
+### Transactional outbox — try it from VS Code (REST Client) or Rider/Visual Studio.
+### Run the API first: `dotnet run --project src/TransactionalOutbox.Api` or `docker compose up --build`.
+@api = http://localhost:8080/api
+
+### 1. Start a subscription (row + outbox message, one transaction)
+# @name start
+POST {{api}}/subscriptions
+Content-Type: application/json
+
+{ "customerEmail": "dana@example.com", "plan": "Pro" }
+
+### 2. A moment later Billing has issued the invoice
+GET {{api}}/invoices?subscriptionId={{start.response.body.id}}
+
+### 3. Outbox: every message with its attempts
+GET {{api}}/outbox/stats
+
+###
+GET {{api}}/outbox?take=10
+
+### 4. Simulate a broker outage (in-memory transport only;
+###    with Docker Compose run `docker compose stop rabbitmq` instead)
+PUT {{api}}/broker
+Content-Type: application/json
+
+{ "available": false }
+
+### 5. Writes still succeed — the message waits in the outbox
+POST {{api}}/subscriptions
+Content-Type: application/json
+
+{ "customerEmail": "eli@example.com", "plan": "Team" }
+
+### 6. Pending, with attempts and the last error
+GET {{api}}/outbox?status=Pending
+
+### 7. End the outage — the backlog drains and the invoice appears
+PUT {{api}}/broker
+Content-Type: application/json
+
+{ "available": true }
+
+###
+GET {{api}}/invoices
+
+### 8. Cancel: a second message on the same stream, published after the first
+POST {{api}}/subscriptions/{{start.response.body.id}}/cancel
+
+### 9. Requeue a dead-lettered message (409 if it is not dead-lettered)
+POST {{api}}/outbox/00000000-0000-0000-0000-000000000000/requeue
