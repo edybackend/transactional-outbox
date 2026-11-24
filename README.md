@@ -10,8 +10,6 @@ message to RabbitMQ later. **Billing** consumes it idempotently and issues the i
 Stop the broker, keep creating subscriptions, start it again: nothing is lost and nothing is billed twice. CI runs
 exactly that on every push.
 
-Small on purpose: it can be read in about 15 minutes and started with one command.
-
 ## The problem: dual write
 
 ```csharp
@@ -157,16 +155,9 @@ RABBITMQ_URL=amqp://guest:guest@localhost:5672 dotnet test   # also through a re
 - **Head-of-line blocking per stream.** A dead-lettered message holds back the later messages of its subscription until it is requeued. That is intended, since publishing them out of order would be worse.
 - **Both modules run in one process** so the demo is one container. They share no code or database, so they can be split into two services with no change to the outbox or the consumer.
 
-## AI-Assisted Engineering
+## Working with an AI agent
 
-This project was built with Claude Code under explicit engineering controls:
-
-- **Project rules** ([`CLAUDE.md`](CLAUDE.md)) define the module boundaries and the messaging rules the agent must follow.
-- **Hooks** ([`.claude/settings.json`](.claude/settings.json)) format every change, block edits to secrets and databases, **block publishing to the broker from the Subscriptions module** (only the outbox may), **block removing or renaming fields of published messages**, and run the build and tests before a task is considered done.
-- **Spec-first**: each feature starts as a spec in [`specs/`](specs) with acceptance criteria.
-- **Same quality gates for every line**: CI enforces warnings as errors, formatting, unit/integration/architecture tests, a real RabbitMQ, an automated broker outage and secret scanning.
-
-I own the architecture and review every change.
+The one mistake this repository exists to prevent is publishing straight to the broker after `SaveChanges`. That is exactly the shortcut a code assistant would take, so a hook in [`.claude/`](.claude) refuses it in the Subscriptions module, and another protects the published message contracts. The rest of the rules are in [`CLAUDE.md`](CLAUDE.md).
 
 ## License
 

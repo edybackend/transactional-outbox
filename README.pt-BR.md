@@ -10,8 +10,6 @@ mensagem no RabbitMQ depois. **Billing** consome de forma idempotente e emite a 
 Pare o broker, continue criando assinaturas e ligue de novo: nada se perde e nada é cobrado duas vezes. O CI roda
 exatamente isso a cada push.
 
-Pequeno de propósito: dá para ler em uns 15 minutos e subir com um comando.
-
 ## O problema: escrita dupla
 
 ```csharp
@@ -157,16 +155,9 @@ RABBITMQ_URL=amqp://guest:guest@localhost:5672 dotnet test   # também passando 
 - **Bloqueio por stream.** Uma mensagem em dead-letter segura as mensagens seguintes da mesma assinatura até ser reenfileirada. É intencional, porque publicar fora de ordem seria pior.
 - **Os dois módulos rodam num processo só**, para a demo ser um contêiner. Eles não compartilham código nem banco, então podem virar dois serviços sem mudar o outbox nem o consumidor.
 
-## Engenharia assistida por IA
+## Trabalhando com um agente de IA
 
-Este projeto foi construído com o Claude Code sob controles explícitos de engenharia:
-
-- **Regras do projeto** ([`CLAUDE.md`](CLAUDE.md)) definem as fronteiras entre módulos e as regras de mensageria que o agente segue.
-- **Hooks** ([`.claude/settings.json`](.claude/settings.json)) formatam cada mudança, bloqueiam edição de segredos e bancos, **bloqueiam publicar no broker a partir do módulo Subscriptions** (só o outbox pode), **bloqueiam remover ou renomear campos de mensagens publicadas** e rodam build e testes antes de a tarefa ser dada como pronta.
-- **Spec primeiro**: cada funcionalidade começa como especificação em [`specs/`](specs), com critérios de aceite.
-- **Os mesmos portões de qualidade para cada linha**: o CI exige zero avisos, formatação, testes de unidade/integração/arquitetura, RabbitMQ real, queda automatizada do broker e varredura de segredos.
-
-A arquitetura é minha, e eu reviso cada mudança.
+O erro que este repositório existe para evitar é publicar direto no broker depois do `SaveChanges`. É exatamente o atalho que um assistente de código pegaria, então um hook em [`.claude/`](.claude) recusa isso no módulo Subscriptions, e outro protege os contratos das mensagens publicadas. O restante das regras está no [`CLAUDE.md`](CLAUDE.md).
 
 ## Licença
 
