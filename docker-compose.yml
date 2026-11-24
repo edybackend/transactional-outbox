@@ -1,0 +1,31 @@
+name: transactional-outbox
+
+services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - "15672:15672" # management UI: http://localhost:15672 (guest / guest)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  api:
+    build:
+      context: .
+    image: transactional-outbox:local
+    environment:
+      Messaging__Transport: RabbitMq
+      RabbitMq__ConnectionString: amqp://guest:guest@rabbitmq:5672
+    ports:
+      - "8080:8080" # API reference: http://localhost:8080/scalar
+    volumes:
+      - outbox-data:/app/data
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  outbox-data:
